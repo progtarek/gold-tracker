@@ -97,10 +97,10 @@ def main():
     logger.info("Gold Price Tracker starting up")
 
     # Validate config
-    if config.GOLDAPI_KEY == "YOUR_GOLDAPI_KEY_HERE":
+    if config.FCS_API_KEY == "YOUR_FCS_API_KEY_HERE":
         logger.error(
-            "GoldAPI key not configured! Get a free key at https://www.goldapi.io\n"
-            "Set GOLDAPI_KEY in .env file"
+            "FCS API key not configured! Get a free key at https://fcsapi.com/pricing-free\n"
+            "Set FCS_API_KEY in .env file"
         )
         sys.exit(1)
 
