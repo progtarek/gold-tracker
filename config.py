@@ -22,7 +22,8 @@ UPDATE_INTERVAL_MINUTES = int(os.getenv("UPDATE_INTERVAL_MINUTES", "15"))
 
 # Egyptian market markup (percentage over international price)
 # Egyptian prices include workmanship fees, merchant margins, and taxes
-EGYPT_MARKUP_PERCENTAGE = float(os.getenv("EGYPT_MARKUP_PERCENTAGE", "20"))  # 20% default
+# Calibrated to match real Egyptian market: ~7% markup
+EGYPT_MARKUP_PERCENTAGE = float(os.getenv("EGYPT_MARKUP_PERCENTAGE", "7"))  # 7% default
 
 # Logging
 LOG_FILE = "gold_tracker.log"
