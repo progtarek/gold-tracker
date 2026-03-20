@@ -20,7 +20,8 @@ jobs:
 
       - name: Run gold price check
         env:
-          GOLDAPI_KEY: ${{ secrets.GOLDAPI_KEY }}
+          FCS_API_KEY: ${{ secrets.FCS_API_KEY }}
+          FCS_API_PUBLIC_KEY: ${{ secrets.FCS_API_PUBLIC_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ALERT_PRICE_ABOVE: ${{ secrets.ALERT_PRICE_ABOVE }}

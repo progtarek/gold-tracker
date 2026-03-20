@@ -9,8 +9,9 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1251073256")
 
-# Gold API - Get free key at https://www.goldapi.io
-GOLDAPI_KEY = os.getenv("GOLDAPI_KEY", "YOUR_GOLDAPI_KEY_HERE")
+# FCS API - Get free keys at https://fcsapi.com/dashboard (100 requests/day free tier)
+FCS_API_KEY = os.getenv("FCS_API_KEY", "YOUR_FCS_API_KEY_HERE")
+FCS_API_PUBLIC_KEY = os.getenv("FCS_API_PUBLIC_KEY", "YOUR_FCS_PUBLIC_KEY_HERE")
 
 # Price thresholds (USD per ounce)
 ALERT_PRICE_ABOVE = float(os.getenv("ALERT_PRICE_ABOVE", "0"))  # 0 = disabled

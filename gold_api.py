@@ -1,6 +1,7 @@
-"""Gold price fetching from GoldAPI.io."""
+"""Gold price fetching from FCS API."""
 
 import logging
+from datetime import datetime
 
 import requests
 
@@ -8,11 +9,13 @@ import config
 
 logger = logging.getLogger(__name__)
 
-GOLDAPI_URL = "https://www.goldapi.io/api/XAU/USD"
+FCS_API_URL = "https://fcsapi.com/api-v3/forex/latest"
 
 
 def fetch_gold_price() -> dict | None:
-    """Fetch current gold price from GoldAPI.io.
+    """Fetch current gold price from FCS API (free tier: 100 requests/day).
+
+    Get your free API key at: https://fcsapi.com/pricing-free
 
     Returns dict with keys:
         - price: current price per ounce (float)
@@ -23,26 +26,51 @@ def fetch_gold_price() -> dict | None:
     Returns None if fetch fails.
     """
     try:
+        params = {
+            "symbol": "XAU/USD",
+            "access_key": config.FCS_API_KEY,
+            "api_key": config.FCS_API_PUBLIC_KEY,  # Some FCS API endpoints require this
+        }
+
         resp = requests.get(
-            GOLDAPI_URL,
-            headers={"x-access-token": config.GOLDAPI_KEY},
+            FCS_API_URL,
+            params=params,
             timeout=15,
         )
+
         if resp.status_code == 200:
             data = resp.json()
-            return {
-                "price": float(data.get("price", 0)),
-                "price_gram_22k": float(data.get("price_gram_22k", 0)),
-                "bid": float(data.get("bid", 0)),
-                "ask": float(data.get("ask", 0)),
-                "timestamp": data.get("timestamp", ""),
-            }
+
+            if data.get("status"):
+                price_info = data["response"][0]
+                price = float(price_info.get("c", 0))  # Current/close price
+                bid = float(price_info.get("b", price))  # Bid
+                ask = float(price_info.get("a", price))  # Ask
+
+                # Calculate 22K per gram (1 oz = 31.1035 grams, 22K = 91.67% pure)
+                price_gram_22k = (price / 31.1035) * 0.9167
+
+                # Get timestamp from API or use current time
+                timestamp_str = price_info.get("tm", "")
+                if not timestamp_str:
+                    timestamp_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+                return {
+                    "price": price,
+                    "price_gram_22k": price_gram_22k,
+                    "bid": bid,
+                    "ask": ask,
+                    "timestamp": timestamp_str,
+                }
+            else:
+                logger.error("FCS API: %s", data.get("message", "Unknown error"))
+                return None
         elif resp.status_code == 401:
-            logger.error("GoldAPI: Invalid API key")
+            logger.error("FCS API: Invalid API key")
         elif resp.status_code == 429:
-            logger.error("GoldAPI: Rate limit exceeded")
+            logger.error("FCS API: Rate limit exceeded")
         else:
-            logger.error("GoldAPI error %d: %s", resp.status_code, resp.text)
+            logger.error("FCS API error %d: %s", resp.status_code, resp.text)
         return None
     except requests.RequestException as e:
         logger.exception("Failed to fetch gold price: %s", e)

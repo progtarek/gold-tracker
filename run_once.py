@@ -15,8 +15,10 @@ logging.basicConfig(
 )
 
 # Ensure required env vars are set
-if not os.getenv("GOLDAPI_KEY"):
-    config.GOLDAPI_KEY = os.environ["GOLDAPI_KEY"]
+if not os.getenv("FCS_API_KEY"):
+    config.FCS_API_KEY = os.environ["FCS_API_KEY"]
+if not os.getenv("FCS_API_PUBLIC_KEY"):
+    config.FCS_API_PUBLIC_KEY = os.environ["FCS_API_PUBLIC_KEY"]
 if not os.getenv("TELEGRAM_BOT_TOKEN"):
     config.TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 if not os.getenv("TELEGRAM_CHAT_ID"):
