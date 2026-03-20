@@ -89,10 +89,12 @@ def fetch_gold_price() -> dict | None:
                 if usd_to_egp:
                     # Calculate EGP prices per gram for different karats
                     # 24K = 99.9% pure, 21K = 87.5% pure, 18K = 75% pure
-                    price_egp_24k = price_gram_24k_usd * usd_to_egp
-                    price_egp_21k = (price / 31.1035) * 0.875 * usd_to_egp
-                    price_egp_18k = (price / 31.1035) * 0.75 * usd_to_egp
-                    logger.info("USD to EGP rate: %.2f", usd_to_egp)
+                    # Apply Egyptian market markup (workmanship, margins, taxes)
+                    markup_multiplier = 1 + (config.EGYPT_MARKUP_PERCENTAGE / 100)
+                    price_egp_24k = price_gram_24k_usd * usd_to_egp * markup_multiplier
+                    price_egp_21k = (price / 31.1035) * 0.875 * usd_to_egp * markup_multiplier
+                    price_egp_18k = (price / 31.1035) * 0.75 * usd_to_egp * markup_multiplier
+                    logger.info("USD to EGP rate: %.2f (Egyptian markup: %d%%)", usd_to_egp, config.EGYPT_MARKUP_PERCENTAGE)
                 else:
                     logger.warning("Failed to fetch USD/EGP rate - EGP prices will not be shown")
 
@@ -154,7 +156,7 @@ def format_price_message(price_data: dict, previous_price: float | None = None) 
             f"\U0001f341 18K: <b>EGP {price_egp_18k:,.2f}</b>"
         )
         if usd_to_egp:
-            msg += f"\n\U0001f4b2 USD/EGP: {usd_to_egp:.2f}"
+            msg += f"\n\U0001f4b2 USD/EGP: {usd_to_egp:.2f} (includes {config.EGYPT_MARKUP_PERCENTAGE}% market markup)"
 
     msg += f"\n\u23f0 {timestamp}"
 
