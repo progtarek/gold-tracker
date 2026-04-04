@@ -14,14 +14,14 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
-# Ensure required env vars are set
-if not os.getenv("FCS_API_KEY"):
+# Override config with GitHub Actions secrets if provided
+if os.getenv("FCS_API_KEY"):
     config.FCS_API_KEY = os.environ["FCS_API_KEY"]
-if not os.getenv("FCS_API_PUBLIC_KEY"):
+if os.getenv("FCS_API_PUBLIC_KEY"):
     config.FCS_API_PUBLIC_KEY = os.environ["FCS_API_PUBLIC_KEY"]
-if not os.getenv("TELEGRAM_BOT_TOKEN"):
+if os.getenv("TELEGRAM_BOT_TOKEN"):
     config.TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
-if not os.getenv("TELEGRAM_CHAT_ID"):
+if os.getenv("TELEGRAM_CHAT_ID"):
     config.TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 # Optional: override thresholds from env/secrets

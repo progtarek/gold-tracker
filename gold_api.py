@@ -18,7 +18,6 @@ def _fetch_exchange_rate(from_currency: str, to_currency: str) -> float | None:
         params = {
             "symbol": f"{from_currency}/{to_currency}",
             "access_key": config.FCS_API_KEY,
-            "api_key": config.FCS_API_PUBLIC_KEY,
         }
 
         resp = requests.get(
@@ -59,7 +58,6 @@ def fetch_gold_price() -> dict | None:
         params = {
             "symbol": "XAU/USD",
             "access_key": config.FCS_API_KEY,
-            "api_key": config.FCS_API_PUBLIC_KEY,  # Some FCS API endpoints require this
         }
 
         resp = requests.get(
@@ -70,6 +68,9 @@ def fetch_gold_price() -> dict | None:
 
         if resp.status_code == 200:
             data = resp.json()
+
+            # Log full response for debugging
+            logger.debug("FCS API Response: %s", data)
 
             if data.get("status"):
                 price_info = data["response"][0]
@@ -115,14 +116,30 @@ def fetch_gold_price() -> dict | None:
                     "usd_to_egp": usd_to_egp,
                 }
             else:
-                logger.error("FCS API: %s", data.get("message", "Unknown error"))
+                # Enhanced error logging
+                error_msg = data.get("msg", data.get("message", "Unknown error"))
+                error_code = data.get("code", "N/A")
+                logger.error("FCS API Error [code: %s]: %s", error_code, error_msg)
+                logger.error("Full API response: %s", data)
+
+                # Check for specific error conditions
+                if error_code == 101 or "valid" in str(error_msg).lower() or "unauthorized" in str(error_msg).lower():
+                    logger.error("=" * 60)
+                    logger.error("API KEY ISSUE DETECTED!")
+                    logger.error("Please ensure you've set up FCS API credentials:")
+                    logger.error("1. Get free API key: https://fcsapi.com/pricing-free")
+                    logger.error("2. Add FCS_API_KEY to GitHub Secrets")
+                    logger.error("3. See SETUP.md for detailed instructions")
+                    logger.error("=" * 60)
+                elif "limit" in str(error_msg).lower() or "quota" in str(error_msg).lower():
+                    logger.error("API rate limit or quota exceeded (100 requests/day free tier).")
                 return None
         elif resp.status_code == 401:
-            logger.error("FCS API: Invalid API key")
+            logger.error("FCS API: Invalid API key (HTTP 401)")
         elif resp.status_code == 429:
-            logger.error("FCS API: Rate limit exceeded")
+            logger.error("FCS API: Rate limit exceeded (HTTP 429)")
         else:
-            logger.error("FCS API error %d: %s", resp.status_code, resp.text)
+            logger.error("FCS API HTTP error %d: %s", resp.status_code, resp.text)
         return None
     except requests.RequestException as e:
         logger.exception("Failed to fetch gold price: %s", e)
