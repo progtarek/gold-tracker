@@ -2,7 +2,7 @@ name: Gold Price Tracker
 
 on:
   schedule:
-    - cron: "*/60 * * * *" # Every 60 minutes
+    - cron: "0 */3 * * *" # Every 3 hours (240 requests/month, under 500 free tier limit)
   workflow_dispatch: # Allow manual trigger
 
 jobs:

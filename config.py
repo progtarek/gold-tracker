@@ -17,8 +17,8 @@ FCS_API_PUBLIC_KEY = os.getenv("FCS_API_PUBLIC_KEY", "YOUR_FCS_PUBLIC_KEY_HERE")
 ALERT_PRICE_ABOVE = float(os.getenv("ALERT_PRICE_ABOVE", "0"))  # 0 = disabled
 ALERT_PRICE_BELOW = float(os.getenv("ALERT_PRICE_BELOW", "0"))  # 0 = disabled
 
-# Update interval (minutes)
-UPDATE_INTERVAL_MINUTES = int(os.getenv("UPDATE_INTERVAL_MINUTES", "15"))
+# Update interval (minutes) - set to 180 (3 hours) to stay under FCS API free tier (500 requests/month)
+UPDATE_INTERVAL_MINUTES = int(os.getenv("UPDATE_INTERVAL_MINUTES", "180"))
 
 # Egyptian market markup (percentage over international price)
 # Egyptian prices include workmanship fees, merchant margins, and taxes
