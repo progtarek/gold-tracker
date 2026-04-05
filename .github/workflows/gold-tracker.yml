@@ -2,7 +2,7 @@ name: Gold Price Tracker
 
 on:
   schedule:
-    - cron: "0 */3 * * *" # Every 3 hours (240 requests/month, under 500 free tier limit)
+    - cron: "0 */1 * * *" # Every 1 hour (720 requests/month, under 24,000 free tier limit)
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -22,10 +22,8 @@ jobs:
 
       - name: Run gold price check
         env:
-          # Required: Get free API key at https://fcsapi.com/pricing-free
-          FCS_API_KEY: ${{ secrets.FCS_API_KEY }}
-          # Optional: No longer used, kept for backwards compatibility
-          FCS_API_PUBLIC_KEY: ${{ secrets.FCS_API_PUBLIC_KEY }}
+          # Required: Get free API key at https://twelvedata.com/pricing
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           # Required: Get from @BotFather and @userinfobot on Telegram
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

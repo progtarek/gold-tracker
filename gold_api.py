@@ -1,4 +1,4 @@
-"""Gold price fetching from FCS API."""
+"""Gold price fetching from Twelve Data API."""
 
 import logging
 from datetime import datetime
@@ -9,28 +9,28 @@ import config
 
 logger = logging.getLogger(__name__)
 
-FCS_API_URL = "https://fcsapi.com/api-v3/forex/latest"
+TWELVE_DATA_API_URL = "https://api.twelvedata.com"
 
 
 def _fetch_exchange_rate(from_currency: str, to_currency: str) -> float | None:
-    """Fetch exchange rate from FCS API."""
+    """Fetch exchange rate from Twelve Data API."""
     try:
         params = {
             "symbol": f"{from_currency}/{to_currency}",
-            "access_key": config.FCS_API_KEY,
+            "apikey": config.TWELVE_DATA_API_KEY,
+            "outputsize": 1,
         }
 
         resp = requests.get(
-            FCS_API_URL,
+            f"{TWELVE_DATA_API_URL}/exchange_rate",
             params=params,
             timeout=15,
         )
 
         if resp.status_code == 200:
             data = resp.json()
-            if data.get("status"):
-                rate_info = data["response"][0]
-                return float(rate_info.get("c", 0))
+            if data.get("status") == "ok":
+                return float(data.get("rate", 0))
         return None
     except requests.RequestException as e:
         logger.exception("Failed to fetch exchange rate %s/%s: %s", from_currency, to_currency, e)
@@ -38,9 +38,9 @@ def _fetch_exchange_rate(from_currency: str, to_currency: str) -> float | None:
 
 
 def fetch_gold_price() -> dict | None:
-    """Fetch current gold price from FCS API (free tier: 100 requests/day).
+    """Fetch current gold price from Twelve Data API (free tier: 800 requests/day).
 
-    Get your free API key at: https://fcsapi.com/pricing-free
+    Get your free API key at: https://twelvedata.com/pricing
 
     Returns dict with keys:
         - price: current price per ounce in USD (float)
@@ -57,11 +57,13 @@ def fetch_gold_price() -> dict | None:
     try:
         params = {
             "symbol": "XAU/USD",
-            "access_key": config.FCS_API_KEY,
+            "apikey": config.TWELVE_DATA_API_KEY,
+            "outputsize": 1,
+            "interval": "1min",
         }
 
         resp = requests.get(
-            FCS_API_URL,
+            f"{TWELVE_DATA_API_URL}/time_series",
             params=params,
             timeout=15,
         )
@@ -70,13 +72,18 @@ def fetch_gold_price() -> dict | None:
             data = resp.json()
 
             # Log full response for debugging
-            logger.debug("FCS API Response: %s", data)
+            logger.debug("Twelve Data API Response: %s", data)
 
-            if data.get("status"):
-                price_info = data["response"][0]
-                price = float(price_info.get("c", 0))  # Current/close price
-                bid = float(price_info.get("b", price))  # Bid
-                ask = float(price_info.get("a", price))  # Ask
+            if data.get("status") == "ok":
+                values = data.get("values", [])
+                if not values:
+                    logger.error("No values in Twelve Data API response")
+                    return None
+
+                latest = values[0]
+                price = float(latest.get("close", 0))
+                bid = price * 0.999  # Approximate bid
+                ask = price * 1.001  # Approximate ask
 
                 # Calculate 24K per gram (1 oz = 31.1035 grams, 24K = 99.9% pure)
                 price_gram_24k_usd = (price / 31.1035) * 0.999
@@ -100,7 +107,7 @@ def fetch_gold_price() -> dict | None:
                     logger.warning("Failed to fetch USD/EGP rate - EGP prices will not be shown")
 
                 # Get timestamp from API or use current time
-                timestamp_str = price_info.get("tm", "")
+                timestamp_str = latest.get("datetime", "")
                 if not timestamp_str:
                     timestamp_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -117,29 +124,29 @@ def fetch_gold_price() -> dict | None:
                 }
             else:
                 # Enhanced error logging
-                error_msg = data.get("msg", data.get("message", "Unknown error"))
+                error_msg = data.get("message", "Unknown error")
                 error_code = data.get("code", "N/A")
-                logger.error("FCS API Error [code: %s]: %s", error_code, error_msg)
+                logger.error("Twelve Data API Error [code: %s]: %s", error_code, error_msg)
                 logger.error("Full API response: %s", data)
 
                 # Check for specific error conditions
-                if error_code == 101 or "valid" in str(error_msg).lower() or "unauthorized" in str(error_msg).lower():
+                if "invalid" in str(error_msg).lower() or "unauthorized" in str(error_msg).lower() or error_code == 401:
                     logger.error("=" * 60)
                     logger.error("API KEY ISSUE DETECTED!")
-                    logger.error("Please ensure you've set up FCS API credentials:")
-                    logger.error("1. Get free API key: https://fcsapi.com/pricing-free")
-                    logger.error("2. Add FCS_API_KEY to GitHub Secrets")
+                    logger.error("Please ensure you've set up Twelve Data credentials:")
+                    logger.error("1. Get free API key: https://twelvedata.com/pricing")
+                    logger.error("2. Add TWELVE_DATA_API_KEY to GitHub Secrets")
                     logger.error("3. See SETUP.md for detailed instructions")
                     logger.error("=" * 60)
                 elif "limit" in str(error_msg).lower() or "quota" in str(error_msg).lower():
-                    logger.error("API rate limit or quota exceeded (100 requests/day free tier).")
+                    logger.error("API rate limit or quota exceeded (800 requests/day free tier).")
                 return None
         elif resp.status_code == 401:
-            logger.error("FCS API: Invalid API key (HTTP 401)")
+            logger.error("Twelve Data API: Invalid API key (HTTP 401)")
         elif resp.status_code == 429:
-            logger.error("FCS API: Rate limit exceeded (HTTP 429)")
+            logger.error("Twelve Data API: Rate limit exceeded (HTTP 429)")
         else:
-            logger.error("FCS API HTTP error %d: %s", resp.status_code, resp.text)
+            logger.error("Twelve Data API HTTP error %d: %s", resp.status_code, resp.text)
         return None
     except requests.RequestException as e:
         logger.exception("Failed to fetch gold price: %s", e)

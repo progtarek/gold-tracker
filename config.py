@@ -9,16 +9,15 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1251073256")
 
-# FCS API - Get free keys at https://fcsapi.com/dashboard (100 requests/day free tier)
-FCS_API_KEY = os.getenv("FCS_API_KEY", "YOUR_FCS_API_KEY_HERE")
-FCS_API_PUBLIC_KEY = os.getenv("FCS_API_PUBLIC_KEY", "YOUR_FCS_PUBLIC_KEY_HERE")
+# Twelve Data API - Get free key at https://twelvedata.com/pricing (800 requests/day free tier)
+TWELVE_DATA_API_KEY = os.getenv("TWELVE_DATA_API_KEY", "YOUR_TWELVE_DATA_API_KEY_HERE")
 
 # Price thresholds (USD per ounce)
 ALERT_PRICE_ABOVE = float(os.getenv("ALERT_PRICE_ABOVE", "0"))  # 0 = disabled
 ALERT_PRICE_BELOW = float(os.getenv("ALERT_PRICE_BELOW", "0"))  # 0 = disabled
 
-# Update interval (minutes) - set to 180 (3 hours) to stay under FCS API free tier (500 requests/month)
-UPDATE_INTERVAL_MINUTES = int(os.getenv("UPDATE_INTERVAL_MINUTES", "180"))
+# Update interval (minutes) - set to 60 (1 hour) for Twelve Data API free tier (800/day)
+UPDATE_INTERVAL_MINUTES = int(os.getenv("UPDATE_INTERVAL_MINUTES", "60"))
 
 # Egyptian market markup (percentage over international price)
 # Egyptian prices include workmanship fees, merchant margins, and taxes
